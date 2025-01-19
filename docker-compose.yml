@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  commander:
+    image: scrapoxy/scrapoxy
+    command: "node scrapoxy.js start -f -c --storage file"
+    ports:
+      - 8890:8890
+    environment:
+      - NODE_ENV=production
+      - AUTH_LOCAL_USERNAME=admin
+      - AUTH_LOCAL_PASSWORD=ApexLeadLabs111!
+      - BACKEND_JWT_SECRET=$(openssl rand -hex 32)
+      - FRONTEND_JWT_SECRET=$(openssl rand -hex 32)
+      - STORAGE_FILE_FILENAME=/etc/scrapoxy/config.json
+      - FRONTEND_URL=http://proxy.apexx.top:8890
+      - COMMANDER_URL=http://proxy.apexx.top:8890/api
+      - CLEAR_AT_SHUTDOWN=0
+    volumes:
+      - ./scrapoxy:/etc/scrapoxy
+    restart: always
+
+  haproxy:
+    image: haproxy
+    ports:
+      - 8888:8888
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    restart: always
+
+  master:
+    image: scrapoxy/scrapoxy
+    command: "node scrapoxy.js start -m"
+    deploy:
+      mode: replicated
+      replicas: 2
+      endpoint_mode: dnsrr
+    environment:
+      - NODE_ENV=production
+      - COMMANDER_URL=http://commander:8890/api
+      - BACKEND_JWT_SECRET=$(openssl rand -hex 32)
+      - MASTER_PORT=8888
+    depends_on:
+      - commander
+    restart: always
+
+  refresh:
+    image: scrapoxy/scrapoxy
+    command: "node scrapoxy.js start -r"
+    environment:
+      - NODE_ENV=production
+      - COMMANDER_URL=http://commander:8890/api
+      - BACKEND_JWT_SECRET=$(openssl rand -hex 32)
+    depends_on:
+      - commander
+    restart: always
