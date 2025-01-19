@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3.8"
 
 services:
   commander:
@@ -7,18 +7,29 @@ services:
     ports:
       - 8890:8890
     environment:
-      - NODE_ENV=production
-      - AUTH_LOCAL_USERNAME=admin
-      - AUTH_LOCAL_PASSWORD=ApexLeadLabs111!
-      - BACKEND_JWT_SECRET=$(openssl rand -hex 32)
-      - FRONTEND_JWT_SECRET=$(openssl rand -hex 32)
-      - STORAGE_FILE_FILENAME=/etc/scrapoxy/config.json
-      - FRONTEND_URL=http://proxy.apexx.top:8890
-      - COMMANDER_URL=http://proxy.apexx.top:8890/api
-      - CLEAR_AT_SHUTDOWN=0
+      - NODE_ENV=${NODE_ENV:-production}
+      - AUTH_LOCAL_USERNAME=${AUTH_LOCAL_USERNAME}
+      - AUTH_LOCAL_PASSWORD=${AUTH_LOCAL_PASSWORD}
+      - BACKEND_JWT_SECRET=${BACKEND_JWT_SECRET}
+      - BACKEND_JWT_EXPIRATION=${BACKEND_JWT_EXPIRATION}
+      - FRONTEND_JWT_SECRET=${FRONTEND_JWT_SECRET}
+      - FRONTEND_JWT_EXPIRATION=${FRONTEND_JWT_EXPIRATION}
+      - FRONTEND_SECURE_COOKIE=${FRONTEND_SECURE_COOKIE}
+      - COMMANDER_PORT=${COMMANDER_PORT}
+      - COMMANDER_URL=${COMMANDER_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - STORAGE_FILE_FILENAME=${STORAGE_FILE_FILENAME}
+      - STORAGE_FILE_CERTIFICATES_MAX=${STORAGE_FILE_CERTIFICATES_MAX}
+      - CLEAR_AT_SHUTDOWN=${CLEAR_AT_SHUTDOWN}
+      - STOPPING_DELAY=${STOPPING_DELAY}
     volumes:
       - ./scrapoxy:/etc/scrapoxy
-    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+        reservations:
+          cpus: "0.5"
 
   haproxy:
     image: haproxy
@@ -26,31 +37,61 @@ services:
       - 8888:8888
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-    restart: always
 
   master:
     image: scrapoxy/scrapoxy
     command: "node scrapoxy.js start -m"
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 2  # Number of Master instances
       endpoint_mode: dnsrr
+      resources:
+        limits:
+          cpus: "1.0"
+        reservations:
+          cpus: "0.5"
     environment:
-      - NODE_ENV=production
-      - COMMANDER_URL=http://commander:8890/api
-      - BACKEND_JWT_SECRET=$(openssl rand -hex 32)
-      - MASTER_PORT=8888
+      - NODE_ENV=${NODE_ENV:-production}
+      - COMMANDER_URL=${COMMANDER_URL}
+      - BACKEND_JWT_SECRET=${BACKEND_JWT_SECRET}
+      - MASTER_PORT=${MASTER_PORT}
+      - MASTER_TIMEOUT=${MASTER_TIMEOUT}
+      - MASTER_CERTIFICATE_CERT=${MASTER_CERTIFICATE_CERT}
+      - MASTER_CERTIFICATE_KEY=${MASTER_CERTIFICATE_KEY}
     depends_on:
       - commander
-    restart: always
 
   refresh:
     image: scrapoxy/scrapoxy
     command: "node scrapoxy.js start -r"
     environment:
-      - NODE_ENV=production
-      - COMMANDER_URL=http://commander:8890/api
-      - BACKEND_JWT_SECRET=$(openssl rand -hex 32)
+      - NODE_ENV=${NODE_ENV:-production}
+      - COMMANDER_URL=${COMMANDER_URL}
+      - BACKEND_JWT_SECRET=${BACKEND_JWT_SECRET}
+      - PROBE_PORT=${PROBE_PORT}
+      - FINGERPRINT_URL=${FINGERPRINT_URL}
+      - FINGERPRINT_FOLLOW_REDIRECT_MAX=${FINGERPRINT_FOLLOW_REDIRECT_MAX}
+      - FINGERPRINT_RETRY_MAX=${FINGERPRINT_RETRY_MAX}
+      - FINGERPRINT_TIMEOUT=${FINGERPRINT_TIMEOUT}
+      - CONNECTORS_REFRESH_EMPTY_DELAY=${CONNECTORS_REFRESH_EMPTY_DELAY}
+      - CONNECTORS_REFRESH_ERROR_DELAY=${CONNECTORS_REFRESH_ERROR_DELAY}
+      - PROXY_REFRESH_COUNT=${PROXY_REFRESH_COUNT}
+      - PROXY_REFRESH_DELAY=${PROXY_REFRESH_DELAY}
+      - PROXIES_REFRESH_EMPTY_DELAY=${PROXIES_REFRESH_EMPTY_DELAY}
+      - PROXIES_REFRESH_ERROR_DELAY=${PROXIES_REFRESH_ERROR_DELAY}
+      - FREEPROXY_REFRESH_COUNT=${FREEPROXY_REFRESH_COUNT}
+      - FREEPROXY_REFRESH_DELAY=${FREEPROXY_REFRESH_DELAY}
+      - FREEPROXIES_REFRESH_EMPTY_DELAY=${FREEPROXIES_REFRESH_EMPTY_DELAY}
+      - FREEPROXIES_REFRESH_ERROR_DELAY=${FREEPROXIES_REFRESH_ERROR_DELAY}
+      - MASTER_REFRESH_METRICS_DELAY=${MASTER_REFRESH_METRICS_DELAY}
+      - METRICS_REFRESH_REFRESH_DELAY=${METRICS_REFRESH_REFRESH_DELAY}
+      - TASKS_REFRESH_EMPTY_DELAY=${TASKS_REFRESH_EMPTY_DELAY}
+      - TASKS_REFRESH_ERROR_DELAY=${TASKS_REFRESH_ERROR_DELAY}
     depends_on:
       - commander
-    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+        reservations:
+          cpus: "0.5"
