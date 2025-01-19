@@ -46,13 +46,8 @@ services:
     command: "node scrapoxy.js start -m"
     deploy:
       mode: replicated
-      replicas: 2  # Number of Master instances
+      replicas: 2
       endpoint_mode: dnsrr
-      resources:
-        limits:
-          cpus: "1.0"
-        reservations:
-          cpus: "0.5"
     environment:
       - NODE_ENV=production
       - COMMANDER_URL=${COMMANDER_FQDN}/api
@@ -92,9 +87,3 @@ services:
       - TASKS_REFRESH_ERROR_DELAY=2000
     depends_on:
       - commander
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-        reservations:
-          cpus: "0.5"
