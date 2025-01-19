@@ -7,18 +7,18 @@ services:
     ports:
       - 8890:8890
     environment:
-      - COMMANDER_FQDN=${COMMANDER_FQDN} 
+      - COMMANDER_FQDN=${COMMANDER_FQDN}
       - NODE_ENV=production
-      - AUTH_LOCAL_USERNAME=${AUTH_LOCAL_USERNAME}  # Placeholder for username
-      - AUTH_LOCAL_PASSWORD=${AUTH_LOCAL_PASSWORD}  # Placeholder for password
-      - BACKEND_JWT_SECRET=${BACKEND_JWT_SECRET}  # Placeholder for JWT secret
+      - AUTH_LOCAL_USERNAME=${AUTH_LOCAL_USERNAME}
+      - AUTH_LOCAL_PASSWORD=${AUTH_LOCAL_PASSWORD}
+      - BACKEND_JWT_SECRET=${BACKEND_JWT_SECRET}
       - BACKEND_JWT_EXPIRATION=60s
-      - FRONTEND_JWT_SECRET=${FRONTEND_JWT_SECRET}  # Placeholder for JWT secret
+      - FRONTEND_JWT_SECRET=${FRONTEND_JWT_SECRET}
       - FRONTEND_JWT_EXPIRATION=24h
       - FRONTEND_SECURE_COOKIE=0
       - COMMANDER_PORT=8890
-      - COMMANDER_URL=${COMMANDER_FQDN}/api  
-      - FRONTEND_URL=${COMMANDER_FQDN} 
+      - COMMANDER_URL=${COMMANDER_FQDN}/api
+      - FRONTEND_URL=${COMMANDER_FQDN}
       - STORAGE_FILE_FILENAME=/etc/scrapoxy/config.json
       - STORAGE_FILE_CERTIFICATES_MAX=1000
       - CLEAR_AT_SHUTDOWN=0
@@ -37,7 +37,7 @@ services:
     ports:
       - 8888:8888
     environment:
-      - COMMANDER_FQDN=${COMMANDER_FQDN} 
+      - COMMANDER_FQDN=${COMMANDER_FQDN}
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
 
@@ -55,8 +55,8 @@ services:
           cpus: "0.5"
     environment:
       - NODE_ENV=production
-      - COMMANDER_URL=${COMMANDER_FQDN}/api  
-      - BACKEND_JWT_SECRET=${BACKEND_JWT_SECRET}  # Placeholder for JWT secret
+      - COMMANDER_URL=${COMMANDER_FQDN}/api
+      - BACKEND_JWT_SECRET=${BACKEND_JWT_SECRET}
       - MASTER_PORT=8888
       - MASTER_TIMEOUT=60000
       - MASTER_CERTIFICATE_CERT=
@@ -69,8 +69,8 @@ services:
     command: "node scrapoxy.js start -r"
     environment:
       - NODE_ENV=production
-      - COMMANDER_URL=${COMMANDER_FQDN}/api 
-      - BACKEND_JWT_SECRET=${BACKEND_JWT_SECRET}  # Placeholder for JWT secret
+      - COMMANDER_URL=${COMMANDER_FQDN}/api
+      - BACKEND_JWT_SECRET=${BACKEND_JWT_SECRET}
       - PROBE_PORT=8887
       - FINGERPRINT_URL=https://fingerprint.scrapoxy.io/api/json
       - FINGERPRINT_FOLLOW_REDIRECT_MAX=3
